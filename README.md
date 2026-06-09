@@ -6,7 +6,7 @@
 
 ## 🎬 功能演示
 
-查看动画演示：[👉 点击查看项目介绍动画](https://raw.githubusercontent.com/1480735780/wechat-grab/main/video/index.html)
+查看动画演示：[👉 点击查看项目介绍动画](https://htmlpreview.github.io/?https://github.com/1480735780/wechat-grab/blob/main/video/index.html)
 
 ## ✨ 功能
 
