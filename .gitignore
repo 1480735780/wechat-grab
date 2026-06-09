@@ -29,8 +29,8 @@ venv/
 .DS_Store
 Thumbs.db
 
-# 视频（本地开发用）
-video/
+# 内部文档（不需要）
+docs/superpowers/
 
 # 测试覆盖率
 .coverage

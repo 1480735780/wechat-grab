@@ -3,7 +3,7 @@
 # 微信公众号监控助手 - 一键安装脚本
 # ============================================
 # 使用方法:
-#   curl -fsSL https://raw.githubusercontent.com/你的用户名/wechat-article-monitor/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/1480735780/wechat-grab/main/install.sh | bash
 # ============================================
 
 set -e

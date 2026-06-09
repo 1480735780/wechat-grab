@@ -2,6 +2,12 @@
 
 自动检测微信公众号更新 → 抓取文章 → 转换为 Markdown → 邮件/飞书推送日报
 
+> 微信公众号监控助手 | 定时抓取文章、自动转 Markdown、邮件日报推送。一键安装，支持本地/守护/云部署三种模式。
+
+## 🎬 功能演示
+
+查看动画演示：[👉 点击查看项目介绍动画](https://raw.githubusercontent.com/1480735780/wechat-grab/main/video/index.html)
+
 ## ✨ 功能
 
 - ⏰ **定时检测**: 自动监控公众号更新（支持自定义时间段）
@@ -16,13 +22,13 @@
 ### 一键安装
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/你的用户名/wechat-article-monitor/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/1480735780/wechat-grab/main/install.sh | bash
 ```
 
 ### 配置
 
 ```bash
-cd ~/wechat-article-monitor
+cd ~/wechat-grab
 ./wechat-monitor setup
 ```
 
@@ -48,7 +54,7 @@ cd ~/wechat-article-monitor
 | `./wechat-monitor stop` | 停止守护进程 |
 | `./wechat-monitor deploy` | 引导 Docker 部署 |
 
-## 🏗️ 两种使用模式
+## 🏗️ 三种使用模式
 
 ### 模式 1：本地模式（免费，按需运行）
 
@@ -89,6 +95,7 @@ cd ~/wechat-article-monitor
 │       └── base.py   # 通知基类
 ├── tools/            # 辅助工具
 │   └── query_biz.py  # 公众号 biz 查询
+├── video/            # 动画演示
 ├── tests/            # 单元测试
 ├── cli.py            # 命令行工具
 ├── main.py           # 主入口（守护模式）
@@ -104,8 +111,8 @@ cd ~/wechat-article-monitor
 
 ```bash
 # 1. 克隆项目
-git clone https://github.com/你的用户名/wechat-article-monitor.git
-cd wechat-article-monitor
+git clone https://github.com/1480735780/wechat-grab.git
+cd wechat-grab
 
 # 2. 安装依赖
 pip install -r requirements.txt
