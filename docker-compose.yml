@@ -1,0 +1,13 @@
+services:
+  wechat-article:
+    build: .
+    environment:
+      - WA_MP__COOKIE=${MP_COOKIE}
+      - WA_MP__TOKEN=${MP_TOKEN}
+      - WA_NOTIFIER_EMAIL_PASSWORD=${EMAIL_PASSWORD}
+    volumes:
+      - ./output:/app/output
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./config.yaml:/app/config.yaml:ro
+    restart: unless-stopped

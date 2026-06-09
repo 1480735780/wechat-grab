@@ -1,0 +1,37 @@
+# 敏感文件（绝对不上传到 Git）
+.env
+config.yaml
+
+# 运行时生成的文件
+output/
+data/
+logs/
+*.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 视频（本地开发用）
+video/
+
+# 测试覆盖率
+.coverage
+htmlcov/

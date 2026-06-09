@@ -1,0 +1,63 @@
+# ============================================
+# 微信公众号监控助手 - 配置模板
+# ============================================
+# 使用说明:
+#   1. 复制本文件为 config.yaml
+#   2. 填写你的配置
+#   3. 或运行 ./wechat-monitor setup 使用交互式向导
+# ============================================
+
+# RSSHub 配置（备选方案）
+rsshub:
+  base_url: "https://rsshub.app"
+  timeout: 30
+
+# 微信公众平台接口配置（优先于 RSSHub）
+mp:
+  cookie: ""   # 微信公众平台 Cookie（通过环境变量 MP_COOKIE 覆盖）
+  token: ""    # 微信公众平台 Token（通过环境变量 MP_TOKEN 覆盖）
+
+# 关注的公众号列表
+subscriptions:
+  - name: "示例公众号"
+    rss_path: "/wechat/mp/Mzk0MTYzMzMxMA=="
+  # 添加更多公众号:
+  # - name: "另一个公众号"
+  #   rss_path: "/wechat/mp/xxxxxxxxxx"
+
+# 定时任务配置
+scheduler:
+  sync:
+    start_hour: 8        # 同步开始时间（小时）
+    end_hour: 22         # 同步结束时间（小时）
+    interval_minutes: 60 # 检测间隔（分钟）
+    run_on_startup: true # 启动时是否立即执行一次
+  digest:
+    hour: 22             # 日报推送时间（小时）
+    minute: 5            # 日报推送分钟
+
+# 输出配置
+output:
+  base_dir: "./output"           # Markdown 文件保存目录
+  organize_by_date: true         # 是否按日期组织文件夹
+
+# 通知配置
+notifier:
+  email:
+    enabled: false               # 是否启用邮件通知
+    smtp_host: "smtp.qq.com"     # SMTP 服务器
+    smtp_port: 465               # SMTP 端口（QQ邮箱用 465）
+    use_tls: false               # QQ 邮箱 465 端口用 false，其他用 true
+    sender: ""                   # 发件邮箱
+    password: ""                 # SMTP 授权码（通过环境变量 EMAIL_PASSWORD 覆盖）
+    recipients: []               # 收件人列表
+    digest_mode: true            # 日报模式（true=每天汇总，false=实时）
+  feishu:
+    enabled: false               # 是否启用飞书通知
+    app_id: ""                   # 飞书应用 ID
+    app_secret: ""               # 飞书应用密钥
+    folder_token: ""             # 飞书云空间文件夹 Token
+
+# 数据库配置
+database:
+  path: "./data/articles.db"     # SQLite 数据库路径
