@@ -7,17 +7,17 @@
   <style>
     /* ─── Design Tokens ─── */
     :root {
-      --bg: #0A0A0A;
-      --surface: #141414;
-      --cream: #F5F0E6;
-      --cream-dim: #A8A29A;
-      --cream-faint: rgba(245, 240, 230, 0.04);
-      --amber: #D4954A;
-      --amber-bright: #E8AF60;
-      --amber-glow: rgba(212, 149, 74, 0.14);
-      --line: rgba(245, 240, 230, 0.09);
-      --teal: #5AA3A0;
-      --rust: #B5644A;
+      --bg: #F5E6D3;
+      --surface: #EDE0CD;
+      --cream: #3C3432;
+      --cream-dim: #7A7068;
+      --cream-faint: rgba(60, 52, 50, 0.06);
+      --amber: #B8860B;
+      --amber-bright: #D4A017;
+      --amber-glow: rgba(184, 134, 11, 0.12);
+      --line: rgba(60, 52, 50, 0.12);
+      --teal: #5A8A7A;
+      --rust: #A85B40;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -58,6 +58,60 @@
       opacity: 0.07; mix-blend-mode: overlay;
     }
 
+    /* ─── Article Background ─── */
+    .article-bg {
+      position: absolute; inset: 0; z-index: 1; overflow: hidden; pointer-events: none;
+    }
+    .article-bg .ink-wash {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+      opacity: 0.08;
+      animation: inkFloat 20s ease-in-out infinite;
+    }
+    .article-bg .ink-wash:nth-child(odd) {
+      animation-duration: 25s;
+      animation-delay: -5s;
+    }
+    .article-bg .text-line {
+      position: absolute; white-space: nowrap;
+      font-family: "Source Han Serif SC", "Noto Serif CJK SC", Georgia, serif;
+      color: rgba(245, 240, 230, 0.15);
+      letter-spacing: 0.15em;
+      line-height: 1.8;
+      animation: textDrift 30s ease-in-out infinite;
+    }
+    .article-bg .text-line:nth-child(odd) {
+      animation-delay: -8s;
+      animation-duration: 35s;
+    }
+    .article-bg .float-char {
+      position: absolute;
+      font-family: "Source Han Serif SC", "Noto Serif CJK SC", serif;
+      font-weight: 200;
+      opacity: 0.12;
+      animation: charFloat 15s ease-in-out infinite;
+    }
+    .article-bg .float-char:nth-child(even) {
+      animation-delay: -3s;
+      animation-duration: 18s;
+    }
+
+    @keyframes inkFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -20px) scale(1.05); }
+      66% { transform: translate(-20px, 15px) scale(0.95); }
+    }
+    @keyframes textDrift {
+      0%, 100% { transform: translateX(0); opacity: 0.15; }
+      50% { transform: translateX(25px); opacity: 0.25; }
+    }
+    @keyframes charFloat {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      25% { transform: translateY(-30px) rotate(3deg); }
+      75% { transform: translateY(20px) rotate(-2deg); }
+    }
+
     /* ════════════════ SCENE 1: TITLE ════════════════ */
     #scene1 .glow {
       position: absolute; top: 50%; left: 50%;
@@ -90,7 +144,7 @@
 
     /* ════════════════ SCENE 2: PROBLEM ════════════════ */
     #scene2 {
-      background: linear-gradient(180deg, var(--bg) 0%, #0C0705 100%);
+      background: linear-gradient(180deg, var(--bg) 0%, #EDE0CD 100%);
     }
     #scene2 .glow {
       position: absolute; top: 50%; left: 50%;
@@ -174,98 +228,113 @@
 
     /* ════════════════ SCENE 4: FEATURES ════════════════ */
     #scene4 {
-      background: linear-gradient(135deg, var(--bg) 0%, #0D0A06 100%);
+      background: linear-gradient(135deg, var(--bg) 0%, #EDE0CD 100%);
     }
     #scene4 .feat-layout {
-      position: absolute; top: 180px; left: 240px;
-      width: 1440px;
+      position: absolute; top: 160px; left: 200px;
+      width: 1520px;
     }
     #scene4 .feat-header {
-      margin-bottom: 60px;
+      margin-bottom: 50px; text-align: center;
     }
     #scene4 .feat-header .eyebrow {
       font-family: "Courier New", monospace;
       font-size: 16px; color: var(--amber); letter-spacing: 0.2em;
     }
     #scene4 .feat-header .title {
-      font-size: 80px; font-weight: 400; color: var(--cream);
+      font-size: 72px; font-weight: 400; color: var(--cream);
       letter-spacing: 0.04em; margin-top: 16px;
     }
     #scene4 .feat-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 30px;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px;
     }
     #scene4 .feat {
-      display: flex; gap: 28px;
-      padding: 28px 0;
-      border-top: 1px solid var(--line);
+      background: linear-gradient(145deg, #EDE5D8 0%, #E5D9C8 100%);
+      border: 1px solid rgba(184, 134, 11, 0.15);
+      border-radius: 16px;
+      padding: 36px 30px 30px;
+      display: flex; flex-direction: column; gap: 14px;
+      box-shadow: 0 4px 20px rgba(60, 52, 50, 0.06), 0 1px 4px rgba(184, 134, 11, 0.04);
+      transition: transform 0.3s ease;
     }
+    #scene4 .feat:hover { transform: translateY(-4px); }
     #scene4 .feat-icon {
-      font-size: 32px; color: var(--amber);
-      min-width: 50px; text-align: center;
+      font-size: 36px; color: var(--amber);
+      width: 60px; height: 60px; line-height: 60px;
+      background: rgba(184, 134, 11, 0.08);
+      border-radius: 12px;
+      text-align: center;
     }
     #scene4 .feat-body h3 {
-      font-size: 26px; font-weight: 400; color: var(--cream);
-      margin-bottom: 8px;
+      font-size: 24px; font-weight: 500; color: var(--cream);
+      margin-top: 4px;
     }
     #scene4 .feat-body p {
-      font-size: 16px; font-weight: 300; color: var(--cream-dim);
-      line-height: 1.6;
+      font-size: 15px; font-weight: 300; color: var(--cream-dim);
+      line-height: 1.65;
     }
 
     /* ════════════════ SCENE 5: TECH ════════════════ */
     #scene5 .tech-layout {
-      position: absolute; top: 160px; left: 240px;
-      width: 1440px;
+      position: absolute; top: 150px; left: 200px;
+      width: 1520px;
     }
     #scene5 .tech-header {
-      margin-bottom: 48px;
+      margin-bottom: 40px; text-align: center;
     }
     #scene5 .tech-header .eyebrow {
       font-family: "Courier New", monospace;
       font-size: 16px; color: var(--teal); letter-spacing: 0.2em;
     }
     #scene5 .tech-header .title {
-      font-size: 72px; font-weight: 400; color: var(--cream);
-      letter-spacing: 0.04em; margin-top: 16px;
+      font-size: 64px; font-weight: 400; color: var(--cream);
+      letter-spacing: 0.04em; margin-top: 12px;
     }
     #scene5 .tech-stack {
-      display: flex; flex-wrap: wrap; gap: 20px;
-      margin-bottom: 56px;
+      display: flex; flex-wrap: wrap; gap: 16px; justify-content: center;
+      margin-bottom: 48px;
     }
     #scene5 .tech-tag {
-      padding: 12px 28px;
-      border: 1px solid var(--line);
-      border-radius: 4px;
+      padding: 14px 28px;
+      border: 1px solid rgba(184, 134, 11, 0.12);
+      border-radius: 12px;
       font-family: "Courier New", monospace;
-      font-size: 18px; color: var(--cream);
+      font-size: 17px; color: var(--cream);
       letter-spacing: 0.06em;
-      background: rgba(245,240,230,0.02);
+      background: linear-gradient(145deg, #EDE5D8 0%, #E5D9C8 100%);
+      box-shadow: 0 2px 10px rgba(60, 52, 50, 0.04);
     }
     #scene5 .tech-tag.highlight {
       border-color: var(--amber);
-      color: var(--amber); background: rgba(212,149,74,0.06);
+      color: var(--amber);
+      background: linear-gradient(145deg, #F0E4D4 0%, #E8DCC8 100%);
+      box-shadow: 0 2px 14px rgba(184, 134, 11, 0.08);
     }
     #scene5 .tech-details {
-      display: flex; gap: 60px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
     }
     #scene5 .tech-col {
-      flex: 1; display: flex; flex-direction: column; gap: 20px;
+      display: contents;
     }
     #scene5 .tech-item {
-      padding: 20px 0;
-      border-top: 1px solid var(--line);
+      padding: 24px 26px;
+      border-radius: 14px;
+      background: linear-gradient(145deg, #EDE5D8 0%, #E5D9C8 100%);
+      border: 1px solid rgba(184, 134, 11, 0.10);
+      box-shadow: 0 2px 12px rgba(60, 52, 50, 0.05);
     }
     #scene5 .tech-item h4 {
-      font-size: 20px; font-weight: 400; color: var(--cream);
+      font-size: 20px; font-weight: 500; color: var(--cream);
+      margin-bottom: 6px;
     }
     #scene5 .tech-item p {
       font-size: 15px; font-weight: 300; color: var(--cream-dim);
-      margin-top: 6px; line-height: 1.5;
+      line-height: 1.6;
     }
 
     /* ════════════════ SCENE 6: RESULT ════════════════ */
     #scene6 {
-      background: linear-gradient(180deg, var(--bg) 0%, #0A0402 100%);
+      background: linear-gradient(180deg, var(--bg) 0%, #EDE0CD 100%);
     }
     #scene6 .glow {
       position: absolute; top: 45%; left: 50%;
@@ -315,7 +384,7 @@
 
     /* ════════════════ SCENE 7: OUTRO ════════════════ */
     #scene7 {
-      background: linear-gradient(180deg, var(--bg) 0%, #140A05 100%);
+      background: linear-gradient(180deg, var(--bg) 0%, #EDE0CD 100%);
     }
     #scene7 .glow {
       position: absolute; top: 50%; left: 50%;
@@ -359,6 +428,31 @@
 
   <!-- ════════════════ SCENE 1: TITLE ════════════════ -->
   <div id="scene1" class="scene">
+    <div class="article-bg">
+      <!-- 墨晕色块 -->
+      <div class="ink-wash" style="width:400px; height:400px; top:15%; left:10%; background: radial-gradient(circle, #D4954A 0%, transparent 70%);"></div>
+      <div class="ink-wash" style="width:350px; height:350px; top:50%; right:5%; background: radial-gradient(circle, #C45D3E 0%, transparent 70%);"></div>
+      <div class="ink-wash" style="width:500px; height:500px; bottom:5%; left:30%; background: radial-gradient(circle, #8B7355 0%, transparent 70%);"></div>
+      <div class="ink-wash" style="width:300px; height:300px; top:25%; right:25%; background: radial-gradient(circle, #6B8E6B 0%, transparent 70%);"></div>
+      <!-- 文字底纹 -->
+      <span class="text-line" style="top:120px; left:60px; font-size:13px;">
+        微信公众号文章自动监控系统，实时检测更新，自动抓取内容，HTML转Markdown格式，图片本地化存储，每日定时邮件推送
+      </span>
+      <span class="text-line" style="top:200px; right:80px; font-size:12px;">
+        WeChat Official Account Article Monitor — Automated Content Discovery and Delivery Pipeline with Markdown Export
+      </span>
+      <!-- 大号汉字 -->
+      <span class="float-char" style="top:280px; left:180px; font-size:140px; color: #D4954A;">文</span>
+      <span class="float-char" style="top:480px; right:200px; font-size:110px; color: #C45D3E;">章</span>
+      <span class="float-char" style="top:650px; left:350px; font-size:90px; color: #8B7355;">读</span>
+      <span class="float-char" style="top:350px; right:100px; font-size:80px; color: #6B8E6B;">阅</span>
+      <span class="text-line" style="bottom:160px; left:100px; font-size:11px;">
+        定时轮询检测 · 内容哈希去重 · 失败重试机制 · Cookie过期自动告警 · 多公众号并行监控
+      </span>
+      <span class="text-line" style="bottom:120px; right:120px; font-size:10px;">
+        APScheduler定时调度 · SQLite持久化 · markdownify转换 · QQ邮箱SMTP推送 · Docker一键部署
+      </span>
+    </div>
     <div class="glow"></div>
     <div class="reel">REEL 01 <span class="sep">·</span> SCENE <span class="num">001</span></div>
     <div class="reel right">CHINA <span class="sep">·</span> <span class="tag">2026</span></div>
@@ -435,45 +529,45 @@
       </div>
       <div class="feat-grid">
         <div class="feat" id="f1">
-          <div class="feat-icon">M</div>
+          <div class="feat-icon">📄</div>
           <div class="feat-body">
-            <h3>HTML → Markdown 转换</h3>
-            <p>完整保留文章格式与结构 · 正文 + 图片一站式转为 Markdown</p>
+            <h3>HTML → Markdown</h3>
+            <p>完整保留文章格式与结构，正文 + 图片一站式转换</p>
           </div>
         </div>
         <div class="feat" id="f2">
-          <div class="feat-icon">I</div>
+          <div class="feat-icon">🖼️</div>
           <div class="feat-body">
-            <h3>图片自动本地化</h3>
-            <p>自动下载文中图片 · 替换链接为本地相对路径 · MD5 去重</p>
+            <h3>图片本地化</h3>
+            <p>自动下载文中图片，替换为本地相对路径，MD5 去重</p>
           </div>
         </div>
         <div class="feat" id="f3">
-          <div class="feat-icon">@</div>
+          <div class="feat-icon">📧</div>
           <div class="feat-body">
-            <h3>日报邮件推送</h3>
-            <p>每天定时推送 · 文章摘要 + 原文链接 · QQ 邮箱 SMTP</p>
+            <h3>邮件日报推送</h3>
+            <p>每天定时推送，文章摘要 + 原文链接，QQ 邮箱 SMTP</p>
           </div>
         </div>
         <div class="feat" id="f4">
-          <div class="feat-icon">+</div>
+          <div class="feat-icon">📡</div>
           <div class="feat-body">
-            <h3>多公众号支持</h3>
-            <p>简单配置即可同时监控多个公众号 · 独立抓取互不干扰</p>
+            <h3>定时自动检测</h3>
+            <p>早 8 晚 10 自动轮询，发现更新立即抓取，无需人工干预</p>
           </div>
         </div>
         <div class="feat" id="f5">
-          <div class="feat-icon">#</div>
+          <div class="feat-icon">🗄️</div>
           <div class="feat-body">
             <h3>SQLite 去重</h3>
-            <p>URL 唯一索引 + Content Hash 变更检测 · 不重复抓取</p>
+            <p>URL 唯一索引 + Content Hash 变更检测，不重复抓取</p>
           </div>
         </div>
         <div class="feat" id="f6">
-          <div class="feat-icon">!</div>
+          <div class="feat-icon">⚠️</div>
           <div class="feat-body">
             <h3>Cookie 检测 + 告警</h3>
-            <p>自动检测 Cookie 过期 · 邮件提醒更新 · 最多 24h 一次</p>
+            <p>自动检测 Cookie 过期，邮件提醒更新，最多 24h 一次</p>
           </div>
         </div>
       </div>
@@ -562,6 +656,23 @@
 
   <!-- ════════════════ SCENE 7: OUTRO ════════════════ -->
   <div id="scene7" class="scene" style="opacity:0;">
+    <div class="article-bg">
+      <!-- 墨晕色块 -->
+      <div class="ink-wash" style="width:350px; height:350px; top:20%; left:20%; background: radial-gradient(circle, #D4954A 0%, transparent 70%);"></div>
+      <div class="ink-wash" style="width:280px; height:280px; top:40%; right:15%; background: radial-gradient(circle, #8B7355 0%, transparent 70%);"></div>
+      <div class="ink-wash" style="width:400px; height:400px; bottom:10%; left:40%; background: radial-gradient(circle, #6B8E6B 0%, transparent 70%);"></div>
+      <!-- 文字底纹 -->
+      <span class="text-line" style="top:100px; left:120px; font-size:14px;">
+        关注好内容的方式有很多种，让技术帮你留住每一篇值得阅读的文章。自动化你的阅读流，从此不错过好内容。
+      </span>
+      <!-- 大号汉字 -->
+      <span class="float-char" style="top:220px; right:150px; font-size:130px; color: #D4954A;">阅</span>
+      <span class="float-char" style="top:550px; left:120px; font-size:100px; color: #C45D3E;">流</span>
+      <span class="float-char" style="top:300px; left:300px; font-size:80px; color: #8B7355;">写</span>
+      <span class="text-line" style="bottom:100px; left:80px; font-size:12px;">
+        curl -fsSL ... | bash — 一行代码，开始自动抓取你关注的公众号内容
+      </span>
+    </div>
     <div class="glow"></div>
     <div class="reel">REEL 01 <span class="sep">·</span> SCENE <span class="num">007</span></div>
     <div class="reel right"><span class="tag">THE END</span></div>
@@ -591,6 +702,10 @@
   tl.from("#scene1 .title-sub", { opacity: 0, duration: 0.5, ease: "power2.out" }, 2.1);
   tl.from("#scene1 .corner", { opacity: 0, duration: 0.4, stagger: 0.06, ease: "power2.out" }, 0.1);
   tl.to("#scene1 .glow", { scale: 1.08, duration: 6, ease: "sine.inOut" }, 2.5);
+  // Article BG floating animation
+  tl.from("#scene1 .article-bg", { opacity: 0, duration: 2.0, ease: "power2.out" }, 0.5);
+  tl.to("#scene1 .article-bg", { x: 15, y: -10, duration: 8, ease: "sine.inOut", repeat: 1, yoyo: true }, 0.5);
+  tl.to("#scene1 .float-char", { y: -20, x: 10, duration: 5, ease: "sine.inOut", stagger: 0.5, repeat: 2, yoyo: true }, 1.0);
 
   // → TRANSITION S1→S2 (7.5s): fade+blur
   tl.to("#scene1", { opacity: 0, filter: "blur(10px)", duration: 0.55, ease: "power2.in" }, 7.5);
@@ -632,12 +747,12 @@
   tl.from("#scene4 .reel", { opacity: 0, duration: 0.4, ease: "power2.out" }, 30.2);
   tl.from("#scene4 .feat-header .eyebrow", { y: 15, opacity: 0, duration: 0.45, ease: "power3.out" }, 30.4);
   tl.from("#scene4 .feat-header .title", { y: 30, opacity: 0, duration: 0.55, ease: "expo.out" }, 30.6);
-  tl.from("#f1", { y: 25, opacity: 0, duration: 0.45, ease: "power3.out" }, 31.3);
-  tl.from("#f2", { y: 25, opacity: 0, duration: 0.45, ease: "power3.out" }, 31.5);
-  tl.from("#f3", { y: 25, opacity: 0, duration: 0.45, ease: "power3.out" }, 31.7);
-  tl.from("#f4", { y: 25, opacity: 0, duration: 0.45, ease: "power3.out" }, 31.9);
-  tl.from("#f5", { y: 25, opacity: 0, duration: 0.45, ease: "power3.out" }, 32.1);
-  tl.from("#f6", { y: 25, opacity: 0, duration: 0.45, ease: "power3.out" }, 32.3);
+  tl.from("#f1", { y: 30, opacity: 0, scale: 0.95, duration: 0.5, ease: "power3.out" }, 31.2);
+  tl.from("#f2", { y: 30, opacity: 0, scale: 0.95, duration: 0.5, ease: "power3.out" }, 31.4);
+  tl.from("#f3", { y: 30, opacity: 0, scale: 0.95, duration: 0.5, ease: "power3.out" }, 31.6);
+  tl.from("#f4", { y: 30, opacity: 0, scale: 0.95, duration: 0.5, ease: "power3.out" }, 31.8);
+  tl.from("#f5", { y: 30, opacity: 0, scale: 0.95, duration: 0.5, ease: "power3.out" }, 32.0);
+  tl.from("#f6", { y: 30, opacity: 0, scale: 0.95, duration: 0.5, ease: "power3.out" }, 32.2);
 
   // → TRANSITION S4→S5 (45.5s): zoom
   tl.to("#scene4", { scale: 1.12, opacity: 0, filter: "blur(15px)", duration: 0.5, ease: "power3.in" }, 45.5);
@@ -649,18 +764,18 @@
   tl.from("#scene5 .reel", { opacity: 0, duration: 0.4, ease: "power2.out" }, 46.2);
   tl.from("#scene5 .tech-header .eyebrow", { y: 15, opacity: 0, duration: 0.45, ease: "power3.out" }, 46.4);
   tl.from("#scene5 .tech-header .title", { y: 30, opacity: 0, duration: 0.55, ease: "expo.out" }, 46.6);
-  tl.from("#tag1", { scale: 0.7, opacity: 0, duration: 0.3, ease: "back.out(1.5)" }, 47.3);
-  tl.from("#tag2", { scale: 0.7, opacity: 0, duration: 0.3, ease: "back.out(1.5)" }, 47.45);
-  tl.from("#tag3", { scale: 0.7, opacity: 0, duration: 0.3, ease: "back.out(1.5)" }, 47.6);
-  tl.from("#tag4", { scale: 0.7, opacity: 0, duration: 0.3, ease: "back.out(1.5)" }, 47.75);
-  tl.from("#tag5", { scale: 0.7, opacity: 0, duration: 0.3, ease: "back.out(1.5)" }, 47.9);
-  tl.from("#tag6", { scale: 0.7, opacity: 0, duration: 0.3, ease: "back.out(1.5)" }, 48.05);
-  tl.from("#tag7", { scale: 0.7, opacity: 0, duration: 0.3, ease: "back.out(1.5)" }, 48.2);
-  tl.from("#tag8", { scale: 0.7, opacity: 0, duration: 0.3, ease: "back.out(1.5)" }, 48.35);
-  tl.from("#td1", { y: 20, opacity: 0, duration: 0.45, ease: "power3.out" }, 49.0);
-  tl.from("#td2", { y: 20, opacity: 0, duration: 0.45, ease: "power3.out" }, 49.2);
-  tl.from("#td3", { y: 20, opacity: 0, duration: 0.45, ease: "power3.out" }, 49.4);
-  tl.from("#td4", { y: 20, opacity: 0, duration: 0.45, ease: "power3.out" }, 49.6);
+  tl.from("#tag1", { y: 20, scale: 0.8, opacity: 0, duration: 0.35, ease: "back.out(1.7)" }, 47.2);
+  tl.from("#tag2", { y: 20, scale: 0.8, opacity: 0, duration: 0.35, ease: "back.out(1.7)" }, 47.4);
+  tl.from("#tag3", { y: 20, scale: 0.8, opacity: 0, duration: 0.35, ease: "back.out(1.7)" }, 47.6);
+  tl.from("#tag4", { y: 20, scale: 0.8, opacity: 0, duration: 0.35, ease: "back.out(1.7)" }, 47.8);
+  tl.from("#tag5", { y: 20, scale: 0.8, opacity: 0, duration: 0.35, ease: "back.out(1.7)" }, 48.0);
+  tl.from("#tag6", { y: 20, scale: 0.8, opacity: 0, duration: 0.35, ease: "back.out(1.7)" }, 48.2);
+  tl.from("#tag7", { y: 20, scale: 0.8, opacity: 0, duration: 0.35, ease: "back.out(1.7)" }, 48.4);
+  tl.from("#tag8", { y: 20, scale: 0.8, opacity: 0, duration: 0.35, ease: "back.out(1.7)" }, 48.6);
+  tl.from("#td1", { y: 25, scale: 0.96, opacity: 0, duration: 0.45, ease: "power3.out" }, 49.3);
+  tl.from("#td2", { y: 25, scale: 0.96, opacity: 0, duration: 0.45, ease: "power3.out" }, 49.55);
+  tl.from("#td3", { y: 25, scale: 0.96, opacity: 0, duration: 0.45, ease: "power3.out" }, 49.8);
+  tl.from("#td4", { y: 25, scale: 0.96, opacity: 0, duration: 0.45, ease: "power3.out" }, 50.05);
 
   // → TRANSITION S5→S6 (59.5s): fade
   tl.to("#scene5", { opacity: 0, filter: "blur(8px)", duration: 0.5, ease: "power2.in" }, 59.5);
@@ -693,6 +808,10 @@
   tl.from("#scene7 .outro-line", { scaleX: 0, opacity: 0, duration: 0.5, ease: "power2.out" }, 73.5);
   tl.from("#scene7 .outro-tag", { y: 15, opacity: 0, duration: 0.5, ease: "power3.out" }, 73.7);
   tl.from("#scene7 .outro-sub", { opacity: 0, duration: 0.45, ease: "power2.out" }, 74.0);
+  // Article BG
+  tl.from("#scene7 .article-bg", { opacity: 0, duration: 1.5, ease: "power2.out" }, 73.0);
+  tl.to("#scene7 .article-bg", { x: 10, y: -8, duration: 6, ease: "sine.inOut" }, 73.5);
+  tl.to("#scene7 .float-char", { y: -15, duration: 4, ease: "sine.inOut", stagger: 0.3, repeat: 1, yoyo: true }, 74.0);
 
   // Final fade
   tl.to("#scene7", { opacity: 0, duration: 0.7, ease: "power2.in" }, 79.0);
