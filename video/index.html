@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;">
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
   <style>
     /* ─── Design Tokens ─── */
@@ -701,7 +702,21 @@
 
   // —— Autoplay for browser preview ——
   (function () {
-    var tween = gsap.to(tl, { duration: 80, time: 80, ease: "none" });
+    // 延迟到 DOM 完全加载后开始播放
+    function startPreview() {
+      if (typeof gsap !== 'undefined' && tl) {
+        tl.restart();
+        tl.play(0);
+      } else {
+        setTimeout(startPreview, 200);
+      }
+    }
+    if (document.readyState === 'complete') {
+      startPreview();
+    } else {
+      window.addEventListener('load', startPreview);
+    }
+    var tween = gsap.to(tl, { duration: 80, time: 80, ease: "none", delay: 0.5 });
     window.__previewTween = tween;
   })();
 </script>
