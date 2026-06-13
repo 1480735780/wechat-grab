@@ -200,3 +200,62 @@ class ArticleRepository:
         )
         conn.commit()
         conn.close()
+
+
+class StateRepository:
+    """系统状态存储，用于告警去重等场景"""
+
+    def __init__(self, db_path: str = "./data/articles.db"):
+        self.db_path = db_path
+        Path(db_path).parent.mkdir(parents=True, exist_ok=True)
+        self._init_db()
+
+    def _get_conn(self) -> sqlite3.Connection:
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        return conn
+
+    def _init_db(self):
+        conn = self._get_conn()
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS system_state (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL DEFAULT '',
+                updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.commit()
+        conn.close()
+
+    def get(self, key: str) -> Optional[str]:
+        conn = self._get_conn()
+        row = conn.execute(
+            "SELECT value FROM system_state WHERE key = ?", (key,)
+        ).fetchone()
+        conn.close()
+        if row is None:
+            return None
+        return row["value"]
+
+    def set(self, key: str, value: str):
+        conn = self._get_conn()
+        conn.execute(
+            """INSERT INTO system_state (key, value, updated_at)
+               VALUES (?, ?, CURRENT_TIMESTAMP)
+               ON CONFLICT(key) DO UPDATE SET
+               value = excluded.value,
+               updated_at = excluded.updated_at""",
+            (key, value),
+        )
+        conn.commit()
+        conn.close()
+
+    def get_updated_at(self, key: str) -> Optional[datetime]:
+        conn = self._get_conn()
+        row = conn.execute(
+            "SELECT updated_at FROM system_state WHERE key = ?", (key,)
+        ).fetchone()
+        conn.close()
+        if row is None:
+            return None
+        return datetime.fromisoformat(row["updated_at"])

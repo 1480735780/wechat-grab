@@ -7,23 +7,30 @@
 #   3. 或运行 ./wechat-monitor setup 使用交互式向导
 # ============================================
 
-# RSSHub 配置（备选方案）
+# RSSHub 配置
+# 自部署时使用 http://localhost:1200（Docker Compose 默认）
+# 公共实例（不推荐，微信路由常被限流）: https://rsshub.app
 rsshub:
-  base_url: "https://rsshub.app"
+  base_url: "http://localhost:1200"
   timeout: 30
 
 # 微信公众平台接口配置（优先于 RSSHub）
+# cookie 和 token 通过环境变量设置（推荐）：
+#   export WA_MP__COOKIE=你的cookie
+#   export WA_MP__TOKEN=你的token
 mp:
-  cookie: ""   # 微信公众平台 Cookie（通过环境变量 MP_COOKIE 覆盖）
-  token: ""    # 微信公众平台 Token（通过环境变量 MP_TOKEN 覆盖）
+  cookie: ""
+  token: ""
 
 # 关注的公众号列表
+# rss_path 格式: /wechat/mp/{fakeid}
+# fakeid 获取方式：登录 mp.weixin.qq.com，F12 查看请求参数中的 fakeid
 subscriptions:
   - name: "示例公众号"
-    rss_path: "/wechat/mp/Mzk0MTYzMzMxMA=="
+    rss_path: "/wechat/mp/xxxxxxxxxx"
   # 添加更多公众号:
   # - name: "另一个公众号"
-  #   rss_path: "/wechat/mp/xxxxxxxxxx"
+  #   rss_path: "/wechat/mp/yyyyyyyyyy"
 
 # 定时任务配置
 scheduler:
@@ -49,7 +56,7 @@ notifier:
     smtp_port: 465               # SMTP 端口（QQ邮箱用 465）
     use_tls: false               # QQ 邮箱 465 端口用 false，其他用 true
     sender: ""                   # 发件邮箱
-    password: ""                 # SMTP 授权码（通过环境变量 EMAIL_PASSWORD 覆盖）
+    password: ""                 # SMTP 授权码（通过环境变量 WA_NOTIFIER_EMAIL_PASSWORD 覆盖）
     recipients: []               # 收件人列表
     digest_mode: true            # 日报模式（true=每天汇总，false=实时）
   feishu:

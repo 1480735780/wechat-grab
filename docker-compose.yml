@@ -1,13 +1,26 @@
 services:
+  rsshub:
+    image: diygod/rsshub:latest
+    ports:
+      - "1200:1200"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:1200/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
   wechat-article:
     build: .
     environment:
-      - WA_MP__COOKIE=${MP_COOKIE}
-      - WA_MP__TOKEN=${MP_TOKEN}
+      - WA_RSSHUB_BASE_URL=http://rsshub:1200
       - WA_NOTIFIER_EMAIL_PASSWORD=${EMAIL_PASSWORD}
     volumes:
       - ./output:/app/output
       - ./data:/app/data
       - ./logs:/app/logs
       - ./config.yaml:/app/config.yaml:ro
+    depends_on:
+      rsshub:
+        condition: service_healthy
     restart: unless-stopped

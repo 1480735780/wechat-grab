@@ -2,19 +2,14 @@
 
 自动检测微信公众号更新 → 抓取文章 → 转换为 Markdown → 邮件/飞书推送日报
 
-> 微信公众号监控助手 | 定时抓取文章、自动转 Markdown、邮件日报推送。一键安装，支持本地/守护/云部署三种模式。
-
-## 🎬 功能演示
-
-查看动画演示：[👉 点击查看项目介绍动画](https://htmlpreview.github.io/?https://github.com/1480735780/wechat-grab/blob/main/video/index.html)
-
 ## ✨ 功能
 
 - ⏰ **定时检测**: 自动监控公众号更新（支持自定义时间段）
 - 📄 **自动抓取**: 抓取文章并转换为 Markdown 格式
 - 🖼️ **图片本地化**: 自动下载图片到本地并替换链接
 - 📧 **邮件推送**: 每日文章汇总推送到邮箱
-- 🔒 **Cookie 过期提醒**: 自动检测并邮件提醒
+- 🔄 **双层抓取**: MP API 优先，RSSHub 自动降级
+- 🔔 **统一告警**: Cookie 过期、RSSHub 不可达等异常自动邮件提醒（带防轰炸）
 - 🐳 **Docker 部署**: 一键部署到云服务器
 
 ## 🚀 快速开始
@@ -83,10 +78,11 @@ cd ~/wechat-grab
 ```
 ├── app/              # 核心业务逻辑
 │   ├── config.py     # 配置管理
-│   ├── fetcher.py    # 文章获取（MP API + RSSHub）
+│   ├── fetcher.py    # 文章获取（MP API + RSSHub 双层架构）
 │   ├── scraper.py    # HTML→Markdown 转换
 │   ├── repository.py # SQLite 数据库操作
 │   ├── scheduler.py  # 定时任务逻辑
+│   ├── alert.py      # 统一告警管理（防轰炸）
 │   ├── summarizer.py # 摘要生成
 │   ├── models.py     # 数据模型
 │   ├── logger.py     # 日志配置
@@ -95,7 +91,6 @@ cd ~/wechat-grab
 │       └── base.py   # 通知基类
 ├── tools/            # 辅助工具
 │   └── query_biz.py  # 公众号 biz 查询
-├── video/            # 动画演示
 ├── tests/            # 单元测试
 ├── cli.py            # 命令行工具
 ├── main.py           # 主入口（守护模式）
@@ -139,6 +134,13 @@ python cli.py daemon   # 守护进程
 5. 点击任意请求，找到 Cookie 和 Token
 6. 复制到 `.env` 文件
 
+### 公众号 fakeid
+
+1. 登录 mp.weixin.qq.com
+2. 在后台搜索目标公众号
+3. F12 查看请求参数中的 `fakeid` 值
+4. 填入 config.yaml 的 `rss_path` 字段
+
 ### QQ 邮箱 SMTP 授权码
 
 1. 登录 QQ 邮箱
@@ -153,7 +155,7 @@ python cli.py daemon   # 守护进程
 cp .env.example .env
 # 编辑 .env 填写敏感信息
 
-# 2. 启动
+# 2. 启动（包含 RSSHub + 应用）
 docker compose up -d --build
 
 # 3. 查看日志
@@ -162,9 +164,10 @@ docker compose logs -f
 
 ## ⚠️ 注意事项
 
-1. **MP Cookie 会过期**：通常 2-4 小时，过期后会自动发邮件提醒
-2. **隐私保护**：`.env` 和 `config.yaml` 已加入 `.gitignore`，不会上传到 Git
-3. **首次运行**：建议先用 `run` 命令测试，确认配置正确后再启动 `daemon`
+1. **MP Cookie 会过期**：通常几小时到一天，过期后会自动发邮件提醒
+2. **RSSHub 降级**：Cookie 过期时自动降级到本地 RSSHub（需先启动 Docker）
+3. **隐私保护**：`.env` 和 `config.yaml` 已加入 `.gitignore`，不会上传到 Git
+4. **首次运行**：建议先用 `run` 命令测试，确认配置正确后再启动 `daemon`
 
 ## 📄 License
 

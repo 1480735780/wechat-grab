@@ -7,21 +7,23 @@ from typing import Optional
 import feedparser
 import requests
 
-from app.models import Article, Subscription
+from app.models import Article, Alert, FetchResult, Subscription
 
 logger = logging.getLogger("wechat-article")
 
 
 def fetch_feed(
     subscription: Subscription,
-    base_url: str = "https://rsshub.app",
+    base_url: str = "http://localhost:1200",
     timeout: int = 30,
 ) -> list[Article]:
     url = f"{base_url}{subscription.rss_path}"
     logger.info(f"Fetching RSS feed: {url}")
 
     try:
-        response = requests.get(
+        session = requests.Session()
+        session.trust_env = False
+        response = session.get(
             url,
             timeout=timeout,
             headers={"User-Agent": "WeChatArticleMonitor/1.0"},
@@ -63,11 +65,11 @@ def fetch_mp_articles(
     cookie: str,
     token: str,
     count: int = 5,
-) -> tuple[list[Article], bool]:
+) -> tuple[list[Article], Optional[Alert]]:
     """通过微信公众平台接口获取公众号文章列表
 
     Returns:
-        (articles, cookie_expired): 文章列表和 Cookie 是否过期标志
+        (articles, alert): 文章列表和可能的告警（Cookie 过期时）
     """
     biz = subscription.rss_path.replace("/wechat/mp/", "")
     url = "https://mp.weixin.qq.com/cgi-bin/appmsg"
@@ -91,19 +93,27 @@ def fetch_mp_articles(
     logger.info(f"Fetching MP articles for: {subscription.name} (biz={biz})")
 
     try:
-        resp = requests.get(url, headers=headers, params=params, timeout=15)
+        session = requests.Session()
+        session.trust_env = False
+        resp = session.get(url, headers=headers, params=params, timeout=15)
         data = resp.json()
 
-        # 检测 Cookie 过期：ret != 0 或 base_resp.ret != 0
+        # 检测 Cookie 过期
         ret = data.get("ret", data.get("base_resp", {}).get("ret", 0))
         if ret != 0:
             logger.error(f"MP API returned error for {subscription.name}: ret={ret}, msg={data.get('msg', '')}")
-            # ret=200013 通常表示 token/cookie 过期
-            return [], True
+            alert = Alert(
+                key="COOKIE_EXPIRED",
+                title="MP API Cookie 已失效",
+                message=f"公众号 {subscription.name} 返回错误码 {ret}",
+                level="error",
+                error_code=ret,
+            )
+            return [], alert
 
         if "app_msg_list" not in data:
             logger.warning(f"No articles returned for {subscription.name}: {data.get('base_resp', {})}")
-            return [], False
+            return [], None
 
         articles = []
         for item in data["app_msg_list"]:
@@ -122,54 +132,71 @@ def fetch_mp_articles(
                 articles.append(article)
 
         logger.info(f"Found {len(articles)} articles from {subscription.name} via MP API")
-        return articles, False
+        return articles, None
 
     except Exception as e:
         logger.error(f"Error fetching MP articles for {subscription.name}: {e}")
-        return [], False
+        return [], None
 
 
 def fetch_all_feeds(
     subscriptions: list[Subscription],
-    base_url: str = "https://rsshub.app",
+    base_url: str = "http://localhost:1200",
     timeout: int = 30,
     max_workers: int = 5,
     mp_cookie: str = "",
     mp_token: str = "",
-) -> tuple[list[Article], bool]:
-    """获取所有订阅源的文章
+) -> FetchResult:
+    """获取所有订阅源的文章，MP API 优先，RSSHub 降级
 
     Returns:
-        (articles, cookie_expired): 文章列表和 Cookie 是否过期标志
+        FetchResult: 包含文章列表和告警列表
     """
-    all_articles = []
-    cookie_expired = False
-
+    result = FetchResult()
     use_mp = bool(mp_cookie and mp_token)
+    mp_success = False
 
     if use_mp:
-        # 使用微信公众平台接口（更可靠，但需要 Cookie）
+        # 尝试使用微信公众平台接口
         for sub in subscriptions:
-            articles, expired = fetch_mp_articles(sub, mp_cookie, mp_token)
-            all_articles.extend(articles)
-            if expired:
-                cookie_expired = True
+            articles, alert = fetch_mp_articles(sub, mp_cookie, mp_token)
+            if alert:
+                result.alerts.append(alert)
+            if articles:
+                mp_success = True
+            result.articles.extend(articles)
             time.sleep(1)  # 避免请求过快
-    else:
-        # 使用 RSSHub（无需 Cookie，但可能不稳定）
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            future_to_sub = {
-                executor.submit(fetch_feed, sub, base_url, timeout): sub
-                for sub in subscriptions
-            }
 
-            for future in as_completed(future_to_sub):
-                sub = future_to_sub[future]
-                try:
-                    articles = future.result()
-                    all_articles.extend(articles)
-                except Exception as e:
-                    logger.error(f"Error processing feed for {sub.name}: {e}")
+    # 如果 MP API 未使用或失败，尝试 RSSHub
+    if not mp_success:
+        rsshub_articles_count = 0
+        try:
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                future_to_sub = {
+                    executor.submit(fetch_feed, sub, base_url, timeout): sub
+                    for sub in subscriptions
+                }
 
-    logger.info(f"Total articles found: {len(all_articles)}")
-    return all_articles, cookie_expired
+                for future in as_completed(future_to_sub):
+                    sub = future_to_sub[future]
+                    try:
+                        articles = future.result()
+                        rsshub_articles_count += len(articles)
+                        result.articles.extend(articles)
+                    except Exception as e:
+                        logger.error(f"Error processing feed for {sub.name}: {e}")
+        except Exception as e:
+            logger.error(f"RSSHub fetch failed: {e}")
+
+        # 如果 RSSHub 也返回空，生成告警
+        if rsshub_articles_count == 0 and subscriptions:
+            logger.warning("RSSHub returned no articles from any subscription")
+            result.alerts.append(Alert(
+                key="RSSHUB_UNREACHABLE",
+                title="RSSHub 服务不可达",
+                message=f"所有订阅源均无法获取文章，RSSHub 地址：{base_url}",
+                level="error",
+            ))
+
+    logger.info(f"Total articles found: {len(result.articles)}")
+    return result

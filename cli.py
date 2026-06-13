@@ -76,7 +76,7 @@ def setup_wizard():
 
     # 1. 添加公众号
     print(f"{BOLD}【步骤 1/4】添加关注的公众号{RESET}")
-    print("请输入你要监控的公众号 RSS 路径（例如：/wechat/mp/Mzk0MTYzMzMxMA==）")
+    print("请输入你要监控的公众号 RSS 路径（例如：/wechat/mp/xxxxxxxxxx）")
     print("如果不知道 RSS 路径，可以先运行 tools/query_biz.py 查询 biz\n")
 
     while True:

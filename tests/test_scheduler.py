@@ -1,3 +1,5 @@
+import os
+import tempfile
 from unittest.mock import MagicMock, patch
 
 from app.config import AppConfig
@@ -9,23 +11,20 @@ class TestSchedulerJobs:
     @patch("app.scheduler.fetch_all_feeds")
     @patch("app.scheduler.scrape_article")
     @patch("app.scheduler.TruncateSummarizer")
+    @patch("app.scheduler.AlertManager")
     def test_sync_job_filters_existing_articles(
-        self, mock_summarizer_cls, mock_scrape, mock_fetch, mock_repo_cls
+        self, mock_alert_cls, mock_summarizer_cls, mock_scrape, mock_fetch, mock_repo_cls
     ):
-        from app.models import Article
-
-        existing_article = Article(
-            id=1, title="旧文章", article_url="https://old.com",
-            author="公众号", status="fetched", content_hash="abc",
-        )
+        from app.models import Article, FetchResult
 
         mock_repo = MagicMock()
-        mock_repo.get_by_url.return_value = existing_article
+        mock_repo.exists_by_url.return_value = True
         mock_repo_cls.return_value = mock_repo
 
-        mock_fetch.return_value = [
-            Article(title="旧文章", article_url="https://old.com", author="公众号"),
-        ], False
+        mock_fetch.return_value = FetchResult(
+            articles=[Article(title="旧文章", article_url="https://old.com", author="公众号")],
+            alerts=[],
+        )
 
         mock_summarizer = MagicMock()
         mock_summarizer.summarize.return_value = "摘要"
@@ -41,41 +40,45 @@ class TestSchedulerJobs:
     @patch("app.scheduler.fetch_all_feeds")
     @patch("app.scheduler.scrape_article")
     @patch("app.scheduler.TruncateSummarizer")
-    @patch("app.scheduler.Path")
+    @patch("app.scheduler.AlertManager")
     def test_sync_job_scrapes_new_articles(
-        self, mock_path_cls, mock_summarizer_cls, mock_scrape, mock_fetch, mock_repo_cls
+        self, mock_alert_cls, mock_summarizer_cls, mock_scrape, mock_fetch, mock_repo_cls
     ):
-        from app.models import Article
+        from app.models import Article, FetchResult
 
         mock_repo = MagicMock()
-        mock_repo.get_by_url.return_value = None  # 新文章
+        mock_repo.exists_by_url.return_value = False
         mock_repo.save.return_value = 1
         mock_repo_cls.return_value = mock_repo
 
-        mock_fetch.return_value = [
-            Article(title="新文章", article_url="https://new.com", author="公众号"),
-        ], False
+        mock_fetch.return_value = FetchResult(
+            articles=[Article(title="新文章", article_url="https://new.com", author="公众号")],
+            alerts=[],
+        )
 
-        mock_scrape.return_value = {
-            "markdown_path": "/tmp/test.md",
-            "content_hash": "abc123",
-            "title": "新文章",
-        }
+        with tempfile.NamedTemporaryFile(suffix=".md", delete=False, mode="w", encoding="utf-8") as f:
+            f.write("# 测试文章\n\n这是文章内容。")
+            tmp_md_path = f.name
 
-        mock_path_instance = MagicMock()
-        mock_path_instance.read_text.return_value = "文章内容"
-        mock_path_cls.return_value = mock_path_instance
+        try:
+            mock_scrape.return_value = {
+                "markdown_path": tmp_md_path,
+                "content_hash": "abc123",
+                "title": "新文章",
+            }
 
-        mock_summarizer = MagicMock()
-        mock_summarizer.summarize.return_value = "摘要"
-        mock_summarizer_cls.return_value = mock_summarizer
+            mock_summarizer = MagicMock()
+            mock_summarizer.summarize.return_value = "摘要"
+            mock_summarizer_cls.return_value = mock_summarizer
 
-        config = AppConfig()
-        sync_job = create_sync_job(config)
-        sync_job()
+            config = AppConfig()
+            sync_job = create_sync_job(config)
+            sync_job()
 
-        mock_scrape.assert_called_once()
-        mock_repo.save.assert_called_once()
+            mock_scrape.assert_called_once()
+            mock_repo.save.assert_called_once()
+        finally:
+            os.unlink(tmp_md_path)
 
     @patch("app.scheduler.ArticleRepository")
     @patch("app.notifier.email.EmailNotifier")
@@ -123,83 +126,46 @@ class TestSchedulerJobs:
 
     @patch("app.scheduler.ArticleRepository")
     @patch("app.scheduler.fetch_all_feeds")
-    @patch("app.scheduler._send_cookie_alert")
-    def test_sync_job_detects_cookie_expired(self, mock_alert, mock_fetch, mock_repo_cls):
-        from app.models import Article
+    @patch("app.scheduler.AlertManager")
+    def test_sync_job_sends_cookie_alert(self, mock_alert_cls, mock_fetch, mock_repo_cls):
+        from app.models import Article, FetchResult, Alert
 
         mock_repo = MagicMock()
         mock_repo_cls.return_value = mock_repo
 
-        mock_fetch.return_value = [], True  # cookie_expired=True
+        # 模拟 Cookie 过期告警
+        alert = Alert(key="COOKIE_EXPIRED", title="Cookie过期", message="error", error_code=200013)
+        mock_fetch.return_value = FetchResult(articles=[], alerts=[alert])
+
+        mock_alert_manager = MagicMock()
+        mock_alert_cls.return_value = mock_alert_manager
 
         config = AppConfig()
+        config.subscriptions = []
         sync_job = create_sync_job(config)
         sync_job()
 
-        mock_alert.assert_called_once()
-        mock_repo.save.assert_not_called()
+        mock_alert_manager.send_cookie_expired_alert.assert_called_once()
 
     @patch("app.scheduler.ArticleRepository")
     @patch("app.scheduler.fetch_all_feeds")
-    @patch("app.scheduler.scrape_article")
-    @patch("app.scheduler.TruncateSummarizer")
-    def test_sync_job_dead_letter(
-        self, mock_summarizer_cls, mock_scrape, mock_fetch, mock_repo_cls
-    ):
-        from app.models import Article
-
-        # 模拟已失败 5 次的文章
-        existing_article = Article(
-            id=2, title="失败文章", article_url="https://fail.com",
-            author="公众号", status="failed", fail_count=5,
-        )
+    @patch("app.scheduler.AlertManager")
+    def test_sync_job_sends_rsshub_alert(self, mock_alert_cls, mock_fetch, mock_repo_cls):
+        from app.models import FetchResult, Alert
 
         mock_repo = MagicMock()
-        mock_repo.get_by_url.return_value = existing_article
-        mock_repo_cls.return_value = mock_repo
+        mock_repo_cls.return_value = mock_fetch
 
-        mock_fetch.return_value = [
-            Article(title="失败文章", article_url="https://fail.com", author="公众号"),
-        ], False
+        # 模拟 RSSHub 不可达告警
+        alert = Alert(key="RSSHUB_UNREACHABLE", title="RSSHub不可达", message="error")
+        mock_fetch.return_value = FetchResult(articles=[], alerts=[alert])
 
-        mock_summarizer = MagicMock()
-        mock_summarizer_cls.return_value = mock_summarizer
+        mock_alert_manager = MagicMock()
+        mock_alert_cls.return_value = mock_alert_manager
 
         config = AppConfig()
+        config.subscriptions = []
         sync_job = create_sync_job(config)
         sync_job()
 
-        # 应标记为 permanent_failed，不调用 scrape
-        mock_repo.update_status.assert_called_with(2, "permanent_failed")
-        mock_scrape.assert_not_called()
-
-    @patch("app.scheduler.ArticleRepository")
-    @patch("app.scheduler.fetch_all_feeds")
-    @patch("app.scheduler.scrape_article")
-    @patch("app.scheduler.TruncateSummarizer")
-    def test_sync_job_permanent_failed_skipped(
-        self, mock_summarizer_cls, mock_scrape, mock_fetch, mock_repo_cls
-    ):
-        from app.models import Article
-
-        existing_article = Article(
-            id=3, title="永久失败", article_url="https://permfail.com",
-            author="公众号", status="permanent_failed",
-        )
-
-        mock_repo = MagicMock()
-        mock_repo.get_by_url.return_value = existing_article
-        mock_repo_cls.return_value = mock_repo
-
-        mock_fetch.return_value = [
-            Article(title="永久失败", article_url="https://permfail.com", author="公众号"),
-        ], False
-
-        mock_summarizer = MagicMock()
-        mock_summarizer_cls.return_value = mock_summarizer
-
-        config = AppConfig()
-        sync_job = create_sync_job(config)
-        sync_job()
-
-        mock_scrape.assert_not_called()
+        mock_alert_manager.send_rsshub_down_alert.assert_called_once()

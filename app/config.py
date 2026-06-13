@@ -7,7 +7,7 @@ from pydantic_settings import BaseSettings
 
 
 class RSSHubConfig(BaseModel):
-    base_url: str = "https://rsshub.app"
+    base_url: str = "http://localhost:1200"
     timeout: int = 30
 
 
@@ -50,7 +50,7 @@ class EmailConfig(BaseModel):
     smtp_port: int = 587
     use_tls: bool = True
     sender: str = ""
-    password: str = ""
+    password: str = ""  # 通过环境变量覆盖
     recipients: list[str] = Field(default_factory=list)
     digest_mode: bool = True
 

@@ -1,9 +1,9 @@
 import os
 import tempfile
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from app.models import Article
-from app.repository import ArticleRepository
+from app.repository import ArticleRepository, StateRepository
 
 
 class TestArticleRepository:
@@ -156,3 +156,44 @@ class TestArticleRepository:
         r2 = self.repo.get_by_url("https://mp.weixin.qq.com/s/batch2")
         assert r1.status == "notified"
         assert r2.status == "notified"
+
+
+class TestStateRepository:
+    def setup_method(self):
+        self.tmpdir = tempfile.mkdtemp()
+        self.db_path = os.path.join(self.tmpdir, "test_state.db")
+        self.repo = StateRepository(self.db_path)
+
+    def teardown_method(self):
+        if os.path.exists(self.db_path):
+            os.unlink(self.db_path)
+
+    def test_init_creates_table(self):
+        assert os.path.exists(self.db_path)
+
+    def test_get_nonexistent_key(self):
+        assert self.repo.get("nonexistent") is None
+
+    def test_set_and_get(self):
+        self.repo.set("TEST_KEY", "test_value")
+        assert self.repo.get("TEST_KEY") == "test_value"
+
+    def test_set_overwrite(self):
+        self.repo.set("KEY", "value1")
+        self.repo.set("KEY", "value2")
+        assert self.repo.get("KEY") == "value2"
+
+    def test_get_updated_at(self):
+        # 不存在的 key
+        assert self.repo.get_updated_at("nonexistent") is None
+
+        # 新写入的 key
+        before = datetime.utcnow()
+        self.repo.set("TIME_KEY", "value")
+        after = datetime.utcnow()
+        updated_at = self.repo.get_updated_at("TIME_KEY")
+        assert updated_at is not None
+        # SQLite CURRENT_TIMESTAMP 是 UTC，精度到秒
+        before_sec = before.replace(microsecond=0)
+        after_sec = after.replace(microsecond=0) + timedelta(seconds=1)
+        assert before_sec <= updated_at <= after_sec
